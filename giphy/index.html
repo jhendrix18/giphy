@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>FIFA Stars</title>
+    <link rel="stylesheet" ty[pe = "text/css" href="assets/css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.min.css" />
+</head>
+
+
+
+<!-- ========================================== To-Do Items/ Thoughts =============================================================================================================================================
+    * Clean up and add styling to the page
+    * figure out and implement a limit of (10) to the ajax call-    DONE!!
+    * work with the gif displays, need them to show up in-line, currently going strait down the page - HOW?!?! Losing my mind over this...
+    * move "add button" content to right side of page in own container (work with columns and rows) in html doc
+    * figure out why my prevent reload function isn't working, reprints duplicate buttons
+=======================================================================================================================================================================================================-->
+
+
+<body>
+    <div class="container">
+        <h1>FIFA Stars</h1>
+
+        <div id="buttons-appear-here"></div>
+        <!--section where buttons appear -->
+        <div id="gifs-appear-here"></div>
+        <!--section where gifs appear once created (needs styling) -->
+
+        <form id="add-gif-form">
+            <label for="gif-input">Add New Button </label>
+            <input type="text" id="gif-input">
+            <br>
+            <input id="add-gif" type="submit" value="Submit">
+            <!-- Button triggers new gif topic to be added. Style to move, not a fan of this location as of now -->
+        </form>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script type="text/javascript">
+
+            // Array of initial topics to leverage, then add to dynamically. 
+            var topics = ["Lionel Messi", "Cristiano Ronaldo", "Neymar", "Mohamed Salah"];
+
+
+
+            // ********************************************************************* Section 1 *************************************************************************************************************
+
+            // Function to make ajax call, dynaimcally display content on page
+            function displayTopicsInfo() {
+
+                // create url for ajax call (tested, manually pushed a name into the url, returned perfectly**)
+                var player = $(this).attr("data-playerName");
+                var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + player + "&api_key=WESI04Fk8QRBH6mu9fAfmX7RDEyXyjLF&limit=3";
+
+                $.ajax({                                                                                 // create ajax call to use URL created above and return data.
+                    url: queryURL,
+                    method: "GET"
+                }).then(function (response) {
+                    console.log(queryURL);                                                               // test success of url creation
+                    console.log(response);                                                               // use this to visualize how the data is returned from API before moving on
+                    var results = response.data;                                                         // create var to store results returned from ajax call                   
+                    // loop through returned results
+                    for (var i = 0; i < results.length; i++) {
+                        var playerDiv = $("<div class='player'>");                                       // create new div to hold content returned
+                        var rating = results[i].rating;                                                  // store rating of returned gifs. Since results contains the content from response.data, calling results is not only easier but way faster. MUST DEFINE index position
+                        var p = $("<p>").text("Rating: " + rating);                                      // create a paragraph tag and add .text method to dynamically create and display the returned GIFs rating on the page for the user
+                        var playerImage = $("<img>");                                                    // create image tag, dynamically creates tag to hold and fit into div also just created, pulls src from results, which is data from ajax call via api
+                        playerImage.attr("src", results[i].images.original_still.url);                         // give new img an attribute of source, take path from json/data structure returned from api (MAKE SURE DEFAULT IMAGE IS STILL***)
+                        playerDiv.append(p);                                                             // append paragraph and image to the div created above
+                        playerDiv.append(playerImage);                                                   // prepend the dynamic div to the page div in order to display content on page in entirity
+                        $("#gifs-appear-here").prepend(playerDiv);                                       // how do I make these divs appear inline?
+                    }
+                });
+            }
+
+            // ********************************************************************* Section 2 *************************************************************************************************************
+
+            function renderButtons() {                                                                   // Function to render buttons
+                $("#gifs-appear-here").empty();                                                          // delete any previous buttons, avoids duplicate btns
+                for (var i = 0; i < topics.length; i++) {                                                // loop over topics array, create buttons for each, also add classes to identify each button separately
+                    var player = $("<button>");                                                          // dynamically generate button for each index element in our topics array. From here on, think of "player variable" AS A BUTTON.
+                    player.addClass("player-button");                                                    // adds class to button
+                    player.attr("data-playerName", topics[i]);                                           // adds data attribute, sets equal to value in current array index
+                    player.text(topics[i]);                                                              // adds text to the button itself  
+                    $("#buttons-appear-here").append(player);                                            // add buttons to area on page set aside to hold them
+                }
+            }
+
+            // ********************************************************************* Section 3 *************************************************************************************************************
+
+//
+//             $(".player").on("click", function () {
+//                 var src = $(this).attr("src");                                                       // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+//                 if($(this).hasClass('playing')) {
+//                     $(this).attr('src', src.replace (/\.gif/i, "_s.gif"))
+//                     $(this).removeClass("playing");
+//                 } else {
+//                     $(this).addClass('playing');
+//                     $(this).attr('src', src.replace(/\_s.gif/i, ".gif"));
+//                 }
+//             }) 
+
+
+            // ********************************************************************* Section 4 *************************************************************************************************************
+
+
+            // function for adding new buttons, topics, and subsequent content
+            $("#add-gif").on("click", function (event) {                                                 // on click of button (in form), with this id, run the event function
+                event.preventDefault();                                                                  // prevents default page load stuffs?
+                var topic = $("#gif-input").val().trim();                                                // creates var for new input, assigns text typed into form, remove whitespace
+                topics.push(topic);                                                                      // add new topic to array of existing topics
+                renderButtons();                                                                         // call the function which loops over array and handles new button creation!
+            });
+
+            $(document).on("click", ".player-button", displayTopicsInfo);                                // Adding a click event listener to all elements with a class of "movie-btn"
+
+            renderButtons();                                                                             // display initial buttons, calling function!
+
+        </script>
+    </div>
+</body>
+
+</html>
